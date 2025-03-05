@@ -4,6 +4,12 @@ on:
   issues:
     types: [opened, edited]
 
+# Add permissions block
+permissions:
+  issues: write
+  project: write
+  contents: read
+
 jobs:
   update-status:
     runs-on: ubuntu-latest
@@ -17,8 +23,12 @@ jobs:
         node-version: '18'
         
     - name: Install dependencies
-      run: npm install @octokit/rest
+      run: npm install @octokit/rest @octokit/graphql @actions/github
       
+    - name: Create package.json for ESM
+      run: |
+        echo '{"type":"module"}' > package.json
+        
     - name: Update Issue Status
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
