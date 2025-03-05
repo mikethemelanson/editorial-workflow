@@ -1,5 +1,5 @@
-const { Octokit } = require("@octokit/rest");
-const { context } = require("@actions/github");
+import { Octokit } from "@octokit/rest";
+import { context } from "@actions/github";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -23,7 +23,7 @@ const repo = context.repo.repo;
       return;
     }
 
-    console.log("Processing issue body:", body.substring(0, 200) + "..."); // Log first 200 chars for debugging
+    console.log("Processing issue body:", body.substring(0, 200) + "...");
 
     const checklistItems = [
       "Submit draft (author/submitter)",
@@ -39,10 +39,8 @@ const repo = context.repo.repo;
       "Open social media issue (blog team)",
     ];
 
-    // Count completed items to determine stage
     let completedCount = 0;
     checklistItems.forEach((item) => {
-      // More flexible regex that handles both [x] and [X] with varying spaces
       const regex = new RegExp(`- *\\[[xX]\\] *${escapeRegExp(item)}`, "i");
       if (regex.test(body)) {
         console.log(`Found completed item: ${item}`);
@@ -52,7 +50,6 @@ const repo = context.repo.repo;
 
     console.log(`Total completed items: ${completedCount}`);
     
-    // Determine appropriate stage label
     let stageLabel;
     if (completedCount >= 9) {
       stageLabel = "stage: ready to publish";
@@ -76,12 +73,10 @@ const repo = context.repo.repo;
       stageLabel = "stage: backlog";
     }
 
-    // Get current labels to preserve them
     const currentLabels = issue.data.labels
       .map(label => label.name)
-      .filter(name => !name.startsWith("stage:")); // Remove any existing stage labels
+      .filter(name => !name.startsWith("stage:"));
 
-    // Add the new stage label
     currentLabels.push(stageLabel);
     
     console.log(`Updating issue #${issueNumber} with labels:`, currentLabels);
@@ -102,7 +97,6 @@ const repo = context.repo.repo;
   }
 })();
 
-// Helper function to escape special regex characters
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
