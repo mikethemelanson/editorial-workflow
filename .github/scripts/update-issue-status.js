@@ -1,20 +1,16 @@
-// Use dynamic import for ESM modules
-import { Octokit } from '@octokit/rest';
-import { context } from '@actions/github';
+const { Octokit } = require("@octokit/rest");
+const { context } = require("@actions/github");
 
-// Main function to allow async/await at the top level
-async function main() {
-  // Initialize Octokit REST client
-  const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN
-  });
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
 
-  const issueNumber = context.payload.issue.number;
-  const owner = context.repo.owner;
-  const repo = context.repo.repo;
+const issueNumber = context.payload.issue.number;
+const owner = context.repo.owner;
+const repo = context.repo.repo;
 
+(async () => {
   try {
-    // Get issue content
     const issue = await octokit.issues.get({
       owner,
       repo,
@@ -22,6 +18,13 @@ async function main() {
     });
 
     const body = issue.data.body;
+    if (!body) {
+      console.log(`Issue #${issueNumber} has no body`);
+      return;
+    }
+
+    console.log("Processing issue body:", body.substring(0, 200) + "..."); // Log first 200 chars for debugging
+
     const checklistItems = [
       "Submit draft (author/submitter)",
       "Review draft & triage (blog team)",
@@ -36,53 +39,70 @@ async function main() {
       "Open social media issue (blog team)",
     ];
 
-    // Find the furthest completed checklist item
-    let furthestCheckedIndex = -1;
-    checklistItems.forEach((item, index) => {
-      const regex = new RegExp(`- \\[x\\] ${item}`, "i");
+    // Count completed items to determine stage
+    let completedCount = 0;
+    checklistItems.forEach((item) => {
+      // More flexible regex that handles both [x] and [X] with varying spaces
+      const regex = new RegExp(`- *\\[[xX]\\] *${escapeRegExp(item)}`, "i");
       if (regex.test(body)) {
-        furthestCheckedIndex = Math.max(furthestCheckedIndex, index);
+        console.log(`Found completed item: ${item}`);
+        completedCount++;
       }
     });
 
-    // Get current labels
-    const currentLabels = issue.data.labels.map(label => label.name);
+    console.log(`Total completed items: ${completedCount}`);
     
-    // Remove any existing checklist labels
-    const nonChecklistLabels = currentLabels.filter(label => !checklistItems.includes(label));
-    
-    // Add the furthest completed item
-    if (furthestCheckedIndex >= 0) {
-      const furthestItem = checklistItems[furthestCheckedIndex];
-      const newLabels = [...nonChecklistLabels, furthestItem];
-      
-      await octokit.issues.update({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels: newLabels,
-      });
-
-      console.log(`Issue #${issueNumber} labels updated. Added: ${furthestItem}`);
-      console.log(`Final labels: ${newLabels.join(', ')}`);
+    // Determine appropriate stage label
+    let stageLabel;
+    if (completedCount >= 9) {
+      stageLabel = "stage: ready to publish";
+    } else if (completedCount >= 8) {
+      stageLabel = "stage: preview approval";
+    } else if (completedCount >= 7) {
+      stageLabel = "stage: ready for staging";
+    } else if (completedCount >= 6) {
+      stageLabel = "stage: copyedit";
+    } else if (completedCount >= 5) {
+      stageLabel = "stage: comms review";
+    } else if (completedCount >= 4) {
+      stageLabel = "stage: stage: comms review";
+    } else if (completedCount >= 3) {
+      stageLabel = "stage: team and stakeholder reviews";
+    } else if (completedCount >= 2) {
+      stageLabel = "stage: content team reviews";
+    } else if (completedCount >= 1) {
+      stageLabel = "stage: draft submitted";
     } else {
-      // If no items are checked, just keep non-checklist labels
-      await octokit.issues.update({
-        owner,
-        repo,
-        issue_number: issueNumber,
-        labels: nonChecklistLabels,
-      });
-      console.log(`No checklist items completed for issue #${issueNumber}`);
-      console.log(`Removed any checklist labels, kept: ${nonChecklistLabels.join(', ')}`);
+      stageLabel = "stage: backlog";
     }
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    console.error(error);
-  }
-}
 
-main().catch(error => {
-  console.error(error);
-  process.exit(1);
-});
+    // Get current labels to preserve them
+    const currentLabels = issue.data.labels
+      .map(label => label.name)
+      .filter(name => !name.startsWith("stage:")); // Remove any existing stage labels
+
+    // Add the new stage label
+    currentLabels.push(stageLabel);
+    
+    console.log(`Updating issue #${issueNumber} with labels:`, currentLabels);
+
+    await octokit.issues.update({
+      owner,
+      repo,
+      issue_number: issueNumber,
+      labels: currentLabels,
+    });
+
+    console.log(`Issue #${issueNumber} status updated to: ${stageLabel}`);
+  } catch (error) {
+    console.error(`Error updating issue status: ${error.message}`);
+    if (error.stack) {
+      console.error(error.stack);
+    }
+  }
+})();
+
+// Helper function to escape special regex characters
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
