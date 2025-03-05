@@ -39,35 +39,43 @@ const repo = context.repo.repo;
       "Open social media issue (blog team)",
     ];
 
-    let completedCount = 0;
-    checklistItems.forEach((item) => {
+    // Count consecutive completed items
+    let consecutiveCount = 0;
+    
+    for (let i = 0; i < checklistItems.length; i++) {
+      const item = checklistItems[i];
       const regex = new RegExp(`- *\\[[xX]\\] *${escapeRegExp(item)}`, "i");
+      
       if (regex.test(body)) {
         console.log(`Found completed item: ${item}`);
-        completedCount++;
+        consecutiveCount++;
+      } else {
+        // Break at first unchecked box
+        console.log(`Breaking at unchecked item: ${item}`);
+        break;
       }
-    });
+    }
 
-    console.log(`Total completed items: ${completedCount}`);
+    console.log(`Total consecutive completed items: ${consecutiveCount}`);
     
     let stageLabel;
-    if (completedCount >= 9) {
+    if (consecutiveCount >= 9) {
       stageLabel = "stage: ready to publish";
-    } else if (completedCount >= 8) {
+    } else if (consecutiveCount >= 8) {
       stageLabel = "stage: preview approval";
-    } else if (completedCount >= 7) {
+    } else if (consecutiveCount >= 7) {
       stageLabel = "stage: ready for staging";
-    } else if (completedCount >= 6) {
+    } else if (consecutiveCount >= 6) {
       stageLabel = "stage: copyedit";
-    } else if (completedCount >= 5) {
+    } else if (consecutiveCount >= 5) {
       stageLabel = "stage: comms review";
-    } else if (completedCount >= 4) {
+    } else if (consecutiveCount >= 4) {
       stageLabel = "stage: stage: comms review";
-    } else if (completedCount >= 3) {
+    } else if (consecutiveCount >= 3) {
       stageLabel = "stage: team and stakeholder reviews";
-    } else if (completedCount >= 2) {
+    } else if (consecutiveCount >= 2) {
       stageLabel = "stage: content team reviews";
-    } else if (completedCount >= 1) {
+    } else if (consecutiveCount >= 1) {
       stageLabel = "stage: draft submitted";
     } else {
       stageLabel = "stage: backlog";
