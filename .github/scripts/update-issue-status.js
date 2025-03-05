@@ -59,8 +59,12 @@ const repo = context.repo.repo;
     console.log(`Total consecutive completed items: ${consecutiveCount}`);
     
     let stageLabel;
-    if (consecutiveCount >= 9) {
-      stageLabel = "stage: ready to publish";
+    if (consecutiveCount >= 11) {
+      stageLabel = "stage: ready for promotion";
+    } else if (consecutiveCount >= 10) {
+      stageLabel = "stage: scheduled to publish";
+    } else if (consecutiveCount >= 9) {
+      stageLabel = "stage: ready to schedule";
     } else if (consecutiveCount >= 8) {
       stageLabel = "stage: preview approval";
     } else if (consecutiveCount >= 7) {
