@@ -4,10 +4,11 @@ on:
   issues:
     types: [opened, edited]
 
-# Fix permissions block - using projects instead of project
+# Fix permissions block with the correct permission names
 permissions:
   issues: write
-  projects: write  # This is the correct permission name
+  repository-projects: write
+  organization-projects: write
   contents: read
 
 jobs:
