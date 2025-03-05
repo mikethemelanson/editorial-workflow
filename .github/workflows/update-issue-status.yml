@@ -23,7 +23,7 @@ jobs:
         node-version: '18'
         
     - name: Install dependencies
-      run: npm install @octokit/rest @octokit/graphql @actions/github
+      run: npm install @octokit/rest @actions/github
       
     - name: Create package.json for ESM
       run: |
