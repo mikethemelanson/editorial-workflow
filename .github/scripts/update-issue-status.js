@@ -82,7 +82,7 @@ const repo = context.repo.repo;
     } else if (consecutiveCount >= 1) {
       stageLabel = "stage: draft submitted";
     } else {
-      stageLabel = "stage: backlog";
+      stageLabel = "stage: needs draft";
     }
 
     const currentLabels = issue.data.labels
