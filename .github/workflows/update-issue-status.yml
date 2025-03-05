@@ -4,10 +4,10 @@ on:
   issues:
     types: [opened, edited]
 
-# Add permissions block
+# Fix permissions block - using projects instead of project
 permissions:
   issues: write
-  project: write
+  projects: write  # This is the correct permission name
   contents: read
 
 jobs:
