@@ -142,10 +142,10 @@ async function main() {
           // Map the checklist items to status options
           // You'll need to update this mapping to match your project's actual status options
           const statusMappings = {
-            0: "To Do",
-            1: "In Progress", 
-            2: "In Progress",
-            3: "In Review",
+            0: "Submit draft (author/submitter)",
+            1: "Review draft & triage (blog team)", 
+            2: "Content team reviews & edits (editors)",
+            3: "Team stakeholders approval (sponsor/approver)",
             4: "In Review",
             5: "In Review",
             6: "In Review",
