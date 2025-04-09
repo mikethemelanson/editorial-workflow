@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Reply to issue
-        uses: github/models-reply-action@main
+        uses: github/models-reply-action
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
