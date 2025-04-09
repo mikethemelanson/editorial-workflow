@@ -1,0 +1,20 @@
+name: Demo
+on:
+  issues:
+    types: [edited]
+
+permissions:
+  issues: write
+  contents: read
+  models: read
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reply to issue
+        uses: github/models-reply-action@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            Scan the checklist and determine what the next step in the process is and who is responsible for it.
